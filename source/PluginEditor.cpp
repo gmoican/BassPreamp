@@ -158,7 +158,8 @@ void PluginEditor::resized()
 {
     // layout the positions of your child components here
     auto area = getLocalBounds();
-    int scaledSize = static_cast<int>(50.0 * area.getHeight() / 530.0);
+    auto scaleFactor = area.getHeight() / 530.0;
+    int scaledSize = static_cast<int>(50.0 * scaleFactor);
     
     // --- LAYOUT SETUP ---
     auto headerArea = area.removeFromTop( scaledSize );
@@ -180,6 +181,38 @@ void PluginEditor::resized()
         
     // --- PREAMP CONTROLS ---
     preampContainer.setBounds (area);
+    
+    // Define knob positions at minimum size (center coordinates)
+    struct KnobLayout {
+        juce::Component* knob;
+        int centerX;
+        int centerY;
+        int size;
+    };
+    
+    std::vector<KnobLayout> knobs = {
+        { &characterSlider, 129 + 38, 275 + 38, 82 },
+        { &driveSlider, 223 + 38, 401 + 38, 82 },
+        { &compSlider, 316 + 38, 275 + 38, 82 },
+        { &pumpSlider, 410 + 38, 401 + 38, 82 },
+        { &bassSlider, 504 + 38, 275 + 38, 82 },
+        { &trebleSlider, 597 + 38, 401 + 38, 82 },
+        { &locutSlider, 665 + 20, 285 + 20, 46 }
+    };
+    
+    // Apply scaling to each knob
+    for (auto& knobLayout : knobs)
+    {
+        int scaledCenterX = static_cast<int>(knobLayout.centerX * scaleFactor);
+        int scaledCenterY = static_cast<int>(knobLayout.centerY * scaleFactor);
+        int scaledSize = static_cast<int>(knobLayout.size * scaleFactor);
+        
+        // Calculate bounds from center position
+        int x = scaledCenterX - scaledSize / 2;
+        int y = scaledCenterY - scaledSize / 2;
+        
+        knobLayout.knob->setBounds(x, y, scaledSize, scaledSize);
+    }
     
     // characterSlider.setBounds( area.removeFromLeft(10) );
     // driveSlider.setBounds( area.removeFromLeft(10) );
