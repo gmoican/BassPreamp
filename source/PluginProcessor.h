@@ -2,6 +2,7 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "punk_dsp/punk_dsp.h"
+#include "ff_meters/ff_meters.h"
 
 #if (MSVC)
 #include "ipps.h"
@@ -122,6 +123,9 @@ public:
     juce::AudioProcessorValueTreeState apvts;
     
     void updateParameters();
+    
+    foleys::LevelMeterSource& getInputMeter() { return inputMeter; }
+    foleys::LevelMeterSource& getOutputMeter() { return outputMeter; }
 
 private:
     juce::AudioProcessorValueTreeState::ParameterLayout createParams();
@@ -132,10 +136,13 @@ private:
     float outGain = 1.0f;
     punk_dsp::Gate gate;
     
-    // --- OTT PROCESSORS ---
+    // --- PREAMP PROCESSORS ---
     punk_dsp::TubeModel saturator;
     punk_dsp::Compressor seriesCompressor, parallelCompressor;
     
+    // --- FOLEYS METERS ---
+    foleys::LevelMeterSource inputMeter, outputMeter;
+
     // =============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (BassPreampProcessor)
 };

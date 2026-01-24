@@ -31,6 +31,19 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     // lifterContainer.setButtonText("Preamp");
     addAndMakeVisible (preampContainer);
     
+    // --- LEVEL METERS ---
+    // adjust the colours to how you like them, e.g.
+    lnf.setColour (foleys::LevelMeter::lmMeterGradientLowColour, juce::Colours::whitesmoke);
+    
+    inputMeter.setLookAndFeel (&lnf);
+    outputMeter.setLookAndFeel (&lnf);
+    
+    inputMeter.setMeterSource (&processorRef.getInputMeter());
+    outputMeter.setMeterSource (&processorRef.getOutputMeter());
+    
+    addAndMakeVisible (inputMeter);
+    addAndMakeVisible (outputMeter);
+    
     // --- UTILITIES PARAMETERS ---
     // Input knob
     inputSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
@@ -147,6 +160,8 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
 PluginEditor::~PluginEditor()
 {
     juce::LookAndFeel::setDefaultLookAndFeel(nullptr);
+    inputMeter.setLookAndFeel (nullptr);
+    outputMeter.setLookAndFeel (nullptr);
 }
 
 void PluginEditor::paint (juce::Graphics& g)
@@ -159,16 +174,21 @@ void PluginEditor::resized()
     // layout the positions of your child components here
     auto area = getLocalBounds();
     auto scaleFactor = area.getHeight() / 530.0;
-    int scaledSize = static_cast<int>(50.0 * scaleFactor);
+    int scaledMargin = static_cast<int>(50.0 * scaleFactor);
     
     // --- LAYOUT SETUP ---
-    auto headerArea = area.removeFromTop( scaledSize );
-    auto sideLArea = area.removeFromLeft( scaledSize );
-    auto sideRArea = area.removeFromRight( scaledSize );
+    auto headerArea = area.removeFromTop( scaledMargin );
+    auto sideLArea = area.removeFromLeft( scaledMargin );
+    auto sideRArea = area.removeFromRight( scaledMargin );
     
     header.setBounds(headerArea);
     sidebarLeft.setBounds(sideLArea);
     sidebarRight.setBounds(sideRArea);
+    preampContainer.setBounds (area);
+    
+    // LEVEL METERS
+    inputMeter.setBounds(sideLArea.reduced(6, 2));
+    outputMeter.setBounds(sideRArea.reduced(6, 2));
     
     // --- HEADER CONTROLS ---
     inputSlider.setBounds( headerArea.removeFromLeft(headerArea.getHeight() ) );
@@ -180,8 +200,6 @@ void PluginEditor::resized()
     mixSlider.setBounds( headerArea.removeFromRight(headerArea.getHeight() ) );
         
     // --- PREAMP CONTROLS ---
-    preampContainer.setBounds (area);
-    
     // Define knob positions at minimum size (center coordinates)
     struct KnobLayout {
         juce::Component* knob;
@@ -213,14 +231,4 @@ void PluginEditor::resized()
         
         knobLayout.knob->setBounds(x, y, scaledSize, scaledSize);
     }
-    
-    // characterSlider.setBounds( area.removeFromLeft(10) );
-    // driveSlider.setBounds( area.removeFromLeft(10) );
-    
-    // compSlider.setBounds( area.removeFromLeft(10) );
-    // pumpSlider.setBounds( area.removeFromLeft(10) );
-    
-    // bassSlider.setBounds( area.removeFromLeft(10) );
-    // trebleSlider.setBounds( area.removeFromLeft(10) );
-    // locutSlider.setBounds( area.removeFromLeft(10) );
 }

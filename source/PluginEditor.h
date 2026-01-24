@@ -22,6 +22,11 @@ private:
     // Custom Look and Feel
     punk_dsp::ExamplesLnF myCustomLnF;
     
+    // Foleys' Level meters
+    foleys::LevelMeterLookAndFeel lnf;
+    foleys::LevelMeter inputMeter { foleys::LevelMeter::Minimal }; // See foleys::LevelMeter::MeterFlags for options
+    foleys::LevelMeter outputMeter { foleys::LevelMeter::Minimal }; // See foleys::LevelMeter::MeterFlags for options
+
     // Background
     juce::Image backgroundImage;
     

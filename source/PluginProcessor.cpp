@@ -268,6 +268,10 @@ void BassPreampProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     
     // saturator.setOutGain(1.7f);
     
+    // this prepares the meterSource to measure all output blocks and average over 100ms to allow smooth movements
+    inputMeter.resize (getTotalNumOutputChannels(), (int) (sampleRate * 0.1 / samplesPerBlock));
+    outputMeter.resize (getTotalNumOutputChannels(), (int) (sampleRate * 0.1 / samplesPerBlock));
+    
     updateParameters();
 }
 
@@ -315,6 +319,9 @@ void BassPreampProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // Update params
     updateParameters();
     
+    // LEVEL METERS - INPUT
+    inputMeter.measureBlock (buffer);
+    
     // 1. UTILITIES - INPUT GAIN & GATE
     buffer.applyGain(inGain);
     gate.process(buffer);
@@ -337,6 +344,9 @@ void BassPreampProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // 3. UTILITIES - MIX & OUTPUT GAIN
     //TODO: Mix
     buffer.applyGain(outGain);
+    
+    // LEVEL METERS - OUTPUT
+    outputMeter.measureBlock (buffer);
 }
 
 //==============================================================================
