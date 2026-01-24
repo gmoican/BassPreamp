@@ -7,36 +7,29 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     juce::ignoreUnused (processorRef);
     juce::LookAndFeel::setDefaultLookAndFeel(&myCustomLnF);
     
+    // Background
+    backgroundImage = juce::ImageCache::getFromMemory(BinaryData::BassPreampBackground_png, BinaryData::BassPreampBackground_pngSize);
+    
     // --- LAYOUT ---
-    header.setColour (juce::TextButton::buttonColourId, UIColors::background.brighter(0.4f).withAlpha(0.25f));
     header.setEnabled(false);
+    header.setAlpha(0.f);
     // header.setButtonText ("Header");
     addAndMakeVisible (header);
     
-    footer.setColour (juce::TextButton::buttonColourId, UIColors::background.brighter(0.4f).withAlpha(0.25f));
-    footer.setEnabled(false);
-    // footer.setButtonText ("Footer");
-    addAndMakeVisible (footer);
-    
-    sidebarLeft.setColour (juce::TextButton::buttonColourId, UIColors::background.brighter(0.4f).withAlpha(0.25f));
     sidebarLeft.setEnabled(false);
+    sidebarLeft.setAlpha(0.f);
     // sidebarLeft.setButtonText ("Sidebar L");
     addAndMakeVisible (sidebarLeft);
     
-    sidebarRight.setColour (juce::TextButton::buttonColourId, UIColors::background.brighter(0.4f).withAlpha(0.25f));
     sidebarRight.setEnabled(false);
+    sidebarRight.setAlpha(0.f);
     // sidebarRight.setButtonText ("Sidebar R");
     addAndMakeVisible (sidebarRight);
     
-    lifterContainer.setColour (juce::TextButton::buttonColourId, UIColors::background.brighter(0.4f).withAlpha(0.25f));
-    lifterContainer.setEnabled(false);
-    // lifterContainer.setButtonText("Lifter");
-    addAndMakeVisible (lifterContainer);
-    
-    compContainer.setColour (juce::TextButton::buttonColourId, UIColors::background.brighter(0.4f).withAlpha(0.25f));
-    compContainer.setEnabled(false);
-    // compContainer.setButtonText("Comp");
-    addAndMakeVisible (compContainer);
+    preampContainer.setEnabled(false);
+    preampContainer.setAlpha(0.f);
+    // lifterContainer.setButtonText("Preamp");
+    addAndMakeVisible (preampContainer);
     
     // --- UTILITIES PARAMETERS ---
     // Input knob
@@ -54,10 +47,20 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     gateSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     gateSlider.setRange(Parameters::gateMin, Parameters::gateMax, 0.1);
     gateSlider.setValue(Parameters::gateDefault);
-    gateSlider.setName(Parameters::gateName);
+    gateSlider.setName("Gate");
     addAndMakeVisible(gateSlider);
     
     gateAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::gateId, gateSlider);
+    
+    // Mix knob
+    mixSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    mixSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    mixSlider.setRange(Parameters::mixMin, Parameters::mixMax, 1.0);
+    mixSlider.setValue(Parameters::mixDefault);
+    mixSlider.setName("Mix");
+    addAndMakeVisible(mixSlider);
+    
+    mixAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::mixId, mixSlider);
     
     // Output knob
     outputSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
@@ -69,134 +72,76 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     
     outputAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::outId, outputSlider);
 
-    // --- LIFTER PARAMETERS ---
-    // Lifter-range knob
-    lifterRangeSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    lifterRangeSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    lifterRangeSlider.setRange(Parameters::lifterThresMin, Parameters::lifterThresMax, 0.1);
-    lifterRangeSlider.setValue(Parameters::lifterThresDefault);
-    lifterRangeSlider.setName("Lift");
-    addAndMakeVisible(lifterRangeSlider);
+    // --- PREAMP PARAMETERS ---
+    // Character knob
+    characterSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    characterSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    characterSlider.setRange(Parameters::characterMin, Parameters::characterMax, 0.1);
+    characterSlider.setValue(Parameters::characterDefault);
+    addAndMakeVisible(characterSlider);
     
-    lifterRangeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::lifterThresId, lifterRangeSlider);
+    characterAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::characterId, characterSlider);
 
-    // Lifter-attack knob
-    lifterAttackSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    lifterAttackSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    lifterAttackSlider.setRange(Parameters::lifterAttackMin, Parameters::lifterAttackMax, 0.1);
-    lifterAttackSlider.setValue(Parameters::lifterAttackDefault);
-    lifterAttackSlider.setName("Att");
-    addAndMakeVisible(lifterAttackSlider);
+    // Drive knob
+    driveSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    driveSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    driveSlider.setRange(Parameters::driveMin, Parameters::driveMax, 0.1);
+    driveSlider.setValue(Parameters::driveDefault);
+    addAndMakeVisible(driveSlider);
     
-    lifterAttackAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::lifterAttackId, lifterAttackSlider);
+    driveAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::driveId, driveSlider);
 
-    // Lifter-release knob
-    lifterReleaseSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    lifterReleaseSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    lifterReleaseSlider.setRange(Parameters::lifterReleaseMin, Parameters::lifterReleaseMax, 0.1);
-    lifterReleaseSlider.setValue(Parameters::lifterReleaseDefault);
-    lifterReleaseSlider.setName("Rel");
-    addAndMakeVisible(lifterReleaseSlider);
+    // Comp knob
+    compSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    compSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    compSlider.setRange(Parameters::compMin, Parameters::compMax, 0.1);
+    compSlider.setValue(Parameters::compDefault);
+    addAndMakeVisible(compSlider);
     
-    lifterReleaseAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::lifterReleaseId, lifterReleaseSlider);
+    compAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::compId, compSlider);
     
-    // Mix knob
-    lifterMixSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    lifterMixSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    lifterMixSlider.setRange(Parameters::lifterMixMin, Parameters::lifterMixMax, 0.01);
-    lifterMixSlider.setValue(Parameters::lifterMixDefault);
-    lifterMixSlider.setName("Mix");
-    addAndMakeVisible(lifterMixSlider);
+    // Pump knob
+    pumpSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    pumpSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    pumpSlider.setRange(Parameters::pumpMin, Parameters::pumpMax, 0.01);
+    pumpSlider.setValue(Parameters::pumpDefault);
+    addAndMakeVisible(pumpSlider);
     
-    lifterMixAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::lifterMixId, lifterMixSlider);
+    pumpAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::pumpId, pumpSlider);
 
-    // --- COMPRESSOR PARAMETERS ---
-    // Comp-thres knob
-    compThresSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    compThresSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    compThresSlider.setRange(Parameters::compThresMin, Parameters::compThresMax, 0.1);
-    compThresSlider.setValue(Parameters::compThresDefault);
-    compThresSlider.setName("Comp");
-    addAndMakeVisible(compThresSlider);
+    // Bass knob
+    bassSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    bassSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    bassSlider.setRange(Parameters::bassMin, Parameters::bassMax, 0.1);
+    bassSlider.setValue(Parameters::bassDefault);
+    addAndMakeVisible(bassSlider);
     
-    compThresAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::compThresId, compThresSlider);
+    bassAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::bassId, bassSlider);
     
-    // Comp-attack knob
-    compAttackSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    compAttackSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    compAttackSlider.setRange(Parameters::compAttackMin, Parameters::compAttackMax, 0.1);
-    compAttackSlider.setValue(Parameters::compAttackDefault);
-    compAttackSlider.setName("Att");
-    addAndMakeVisible(compAttackSlider);
+    // Treble knob
+    trebleSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    trebleSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    trebleSlider.setRange(Parameters::trebleMin, Parameters::trebleMax, 0.1);
+    trebleSlider.setValue(Parameters::trebleDefault);
+    addAndMakeVisible(trebleSlider);
     
-    compAttackAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::compAttackId, compAttackSlider);
+    trebleAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::trebleId, trebleSlider);
     
-    // Comp-release knob
-    compReleaseSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    compReleaseSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    compReleaseSlider.setRange(Parameters::compReleaseMin, Parameters::compReleaseMax, 0.1);
-    compReleaseSlider.setValue(Parameters::compReleaseDefault);
-    compReleaseSlider.setName("Rel");
-    addAndMakeVisible(compReleaseSlider);
+    // Lo-cut knob
+    locutSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    locutSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    locutSlider.setRange(Parameters::locutMin, Parameters::locutMax, 0.1);
+    locutSlider.setValue(Parameters::locutDefault);
+    addAndMakeVisible(locutSlider);
     
-    compReleaseAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::compReleaseId, compReleaseSlider);
-    
-    // Mix knob
-    compMixSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    compMixSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    compMixSlider.setRange(Parameters::compMixMin, Parameters::compMixMax, 0.01);
-    compMixSlider.setValue(Parameters::compMixDefault);
-    compMixSlider.setName("Mix");
-    addAndMakeVisible(compMixSlider);
-    
-    compMixAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::compMixId, compMixSlider);
-    
-    // --- CLIPPER ---
-    // Clipper button
-    clipperButton.setClickingTogglesState(true);
-    addAndMakeVisible(clipperButton);
-    
-    clipperAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(processorRef.apvts, Parameters::clipperId, clipperButton);
-    
-    // --- LEVEL METERS ---
-    // Level Meters - Create meters based on channel count
-    int numInputChannels = processorRef.getTotalNumInputChannels();
-    int numOutputChannels = processorRef.getTotalNumOutputChannels();
-    
-    // Input meters
-    inputLeftMeter = std::make_unique<LevelMeter>(&processorRef.levelMeters.rmsInputLeft, "In L");
-    addAndMakeVisible(*inputLeftMeter);
-    
-    if (numInputChannels > 1)
-    {
-        inputRightMeter = std::make_unique<LevelMeter>(&processorRef.levelMeters.rmsInputRight, "In R");
-        addAndMakeVisible(*inputRightMeter);
-    }
-    
-    // Output meters
-    outputLeftMeter = std::make_unique<LevelMeter>(&processorRef.levelMeters.rmsOutputLeft, "Out L");
-    addAndMakeVisible(*outputLeftMeter);
-    
-    if (numOutputChannels > 1)
-    {
-        outputRightMeter = std::make_unique<LevelMeter>(&processorRef.levelMeters.rmsOutputRight, "Out R");
-        addAndMakeVisible(*outputRightMeter);
-    }
-    
-    // --- VERSION ---
-    // Version tag
-    versionTag.setText(juce::String ("") + PRODUCT_NAME_WITHOUT_VERSION + " v" VERSION + " by @punkarra4",
-                       juce::dontSendNotification);
-    versionTag.setJustificationType(juce::Justification::centred);
-    versionTag.setColour(juce::Label::textColourId, UIColors::text);
-    addAndMakeVisible(versionTag);
+    locutAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::locutId, locutSlider);
     
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     setResizable(true, true);
-    getConstrainer()->setFixedAspectRatio(1.55);
-    setResizeLimits(650, 420, 780, 600);
-    setSize (650, 420);
+    getConstrainer()->setFixedAspectRatio(1.51);
+    setResizeLimits(800, 530, 1600, 1060);
+    setSize (800, 530);
 }
 
 PluginEditor::~PluginEditor()
@@ -206,136 +151,43 @@ PluginEditor::~PluginEditor()
 
 void PluginEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (UIColors::background);
+    g.drawImageWithin(backgroundImage, 0, 0, getWidth(), getHeight(), juce::RectanglePlacement::stretchToFit);
 }
 
 void PluginEditor::resized()
 {
     // layout the positions of your child components here
     auto area = getLocalBounds();
+    int scaledSize = static_cast<int>(50.0 * area.getHeight() / 530.0);
     
     // --- LAYOUT SETUP ---
-    auto headerArea = area.removeFromTop( 50 );
-    auto sideLArea = area.removeFromLeft( 50 );
-    auto sideRArea = area.removeFromRight( 50 );
-    auto footerArea = area.removeFromBottom( 30 );
+    auto headerArea = area.removeFromTop( scaledSize );
+    auto sideLArea = area.removeFromLeft( scaledSize );
+    auto sideRArea = area.removeFromRight( scaledSize );
     
     header.setBounds(headerArea);
-    footer.setBounds(footerArea);
     sidebarLeft.setBounds(sideLArea);
     sidebarRight.setBounds(sideRArea);
     
-    // // --- LEVEL METERS ---
-    // --- INPUT METERS ---
-    int numInputChannels = processorRef.getTotalNumInputChannels();
-    
-    if (numInputChannels == 1)  // Mono = Only left channel meter
-    {
-        // Single input channel - meter takes full width
-        if (inputLeftMeter)
-        {
-            inputLeftMeter->setVisible(true);
-            inputLeftMeter->setBounds(sideLArea);
-        }
-        if (inputRightMeter)
-            inputRightMeter->setVisible(false);
-    }
-    else if (numInputChannels > 1) // Stereo = Both channels meters
-    {
-        // Stereo input - split width in half
-        auto leftHalf = sideLArea.removeFromLeft(sideLArea.getWidth() / 2);
-        if (inputLeftMeter)
-        {
-            inputLeftMeter->setVisible(true);
-            inputLeftMeter->setBounds(leftHalf);
-        }
-        if (inputRightMeter)
-        {
-            inputRightMeter->setVisible(true);
-            inputRightMeter->setBounds(sideLArea);
-        }
-    }
-    
-    // --- OUTPUT METERS ---
-    int numOutputChannels = processorRef.getTotalNumOutputChannels();
-    
-    if (numOutputChannels == 1)
-    {
-        // Single output channel - meter takes full height
-        if (outputLeftMeter)
-        {
-            outputLeftMeter->setVisible(true);
-            outputLeftMeter->setBounds(sideRArea);
-        }
-        if (outputRightMeter)
-            outputRightMeter->setVisible(false);
-    }
-    else if (numOutputChannels > 1)
-    {
-        // Stereo output - split height in half
-        auto leftHalf = sideRArea.removeFromLeft(sideRArea.getWidth() / 2);
-        if (outputLeftMeter)
-        {
-            outputLeftMeter->setVisible(true);
-            outputLeftMeter->setBounds(leftHalf);
-        }
-        if (outputRightMeter)
-        {
-            outputRightMeter->setVisible(true);
-            outputRightMeter->setBounds(sideRArea);
-        }
-    }
-    
-    // --- FOOTER ---
-    versionTag.setBounds(footerArea);
-    
     // --- HEADER CONTROLS ---
-    inputSlider.setBounds(headerArea.removeFromLeft(headerArea.getHeight()));
+    inputSlider.setBounds( headerArea.removeFromLeft(headerArea.getHeight() ) );
     
-    gateSlider.setBounds(headerArea.removeFromLeft(headerArea.getHeight()));
-    
-    outputSlider.setBounds(headerArea.removeFromRight(headerArea.getHeight()));
-    
-    clipperButton.setBounds(headerArea.removeFromRight(headerArea.getHeight() + 20)
-                                      .reduced(10, 15)
-                            );
-    
-    // --- LIFTER AND COMP CONTROLS ---
-    auto contentItemHeight = area.getHeight();
-    // Reserve the top area for lifter and comp containers
-    auto topArea = area.removeFromTop(contentItemHeight);
-    
-    // Split the top area in half horizontally
-    auto lifterArea = topArea.removeFromLeft(topArea.getWidth() / 2).reduced(10);
-    auto compArea = topArea.reduced(10);
-    
-    lifterContainer.setBounds (lifterArea);
-    compContainer.setBounds (compArea);
-    
-    // Position sliders inside lifter container
-    auto lifterSliderArea = lifterArea.reduced(10);
-    auto compSliderArea = compArea.reduced(10);
-    
-    // Split into top and bottom rows
-    auto topRow = lifterSliderArea.removeFromTop(lifterSliderArea.getHeight() / 2);
-    auto bottomRow = lifterSliderArea;
+    gateSlider.setBounds( headerArea.removeFromLeft(headerArea.getHeight() ) );
 
-    // Split each row into left and right columns
-    auto sliderWidth = topRow.getWidth() / 2;
+    outputSlider.setBounds( headerArea.removeFromRight(headerArea.getHeight() ) );
     
-    lifterRangeSlider.setBounds(topRow.removeFromLeft(sliderWidth).reduced( (int) sliderWidth * 0.05) );
-    lifterMixSlider.setBounds(topRow.removeFromLeft(sliderWidth).reduced( (int) sliderWidth * 0.05) );
-    lifterAttackSlider.setBounds(bottomRow.removeFromLeft(sliderWidth).reduced( (int) sliderWidth * 0.05) );
-    lifterReleaseSlider.setBounds(bottomRow.removeFromLeft(sliderWidth).reduced( (int) sliderWidth * 0.05) );
+    mixSlider.setBounds( headerArea.removeFromRight(headerArea.getHeight() ) );
+        
+    // --- PREAMP CONTROLS ---
+    preampContainer.setBounds (area);
     
-    // Position sliders inside comp container
-    // Split into top and bottom rows
-    topRow = compSliderArea.removeFromTop(compSliderArea.getHeight() / 2);
-    bottomRow = compSliderArea;
+    // characterSlider.setBounds( area.removeFromLeft(10) );
+    // driveSlider.setBounds( area.removeFromLeft(10) );
     
-    compThresSlider.setBounds(topRow.removeFromLeft(sliderWidth).reduced( (int) sliderWidth * 0.05) );
-    compMixSlider.setBounds(topRow.removeFromLeft(sliderWidth).reduced( (int) sliderWidth * 0.05) );
-    compAttackSlider.setBounds(bottomRow.removeFromLeft(sliderWidth).reduced( (int) sliderWidth * 0.05) );
-    compReleaseSlider.setBounds(bottomRow.removeFromLeft(sliderWidth).reduced( (int) sliderWidth * 0.05) );
+    // compSlider.setBounds( area.removeFromLeft(10) );
+    // pumpSlider.setBounds( area.removeFromLeft(10) );
+    
+    // bassSlider.setBounds( area.removeFromLeft(10) );
+    // trebleSlider.setBounds( area.removeFromLeft(10) );
+    // locutSlider.setBounds( area.removeFromLeft(10) );
 }

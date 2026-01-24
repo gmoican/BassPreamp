@@ -1,9 +1,7 @@
 #pragma once
 
 #include "PluginProcessor.h"
-// #include "BinaryData.h"
-#include "gui/CustomLookAndFeel.h"
-#include "gui/LevelMeter.h"
+#include "BinaryData.h"
 
 //==============================================================================
 class PluginEditor : public juce::AudioProcessorEditor
@@ -22,30 +20,21 @@ private:
     BassPreampProcessor& processorRef;
     
     // Custom Look and Feel
-    CustomLookAndFeel myCustomLnF;
+    punk_dsp::ExamplesLnF myCustomLnF;
+    
+    // Background
+    juce::Image backgroundImage;
     
     // Layout utilities
-    juce::TextButton header, sidebarLeft, sidebarRight, lifterContainer, compContainer, displayContainer, footer;
+    juce::TextButton header, sidebarLeft, sidebarRight, preampContainer;
     
     // Sliders - Rotary knobs
-    juce::Slider inputSlider, gateSlider, outputSlider;
-    juce::Slider lifterRangeSlider, lifterAttackSlider, lifterReleaseSlider, lifterMixSlider;
-    juce::Slider compThresSlider, compAttackSlider, compReleaseSlider, compMixSlider;
-        
-    // Level meters - Conditional creation based on channel count
-    std::unique_ptr<LevelMeter> inputLeftMeter;
-    std::unique_ptr<LevelMeter> inputRightMeter;
-    std::unique_ptr<LevelMeter> outputLeftMeter;
-    std::unique_ptr<LevelMeter> outputRightMeter;
-    
-    // Version
-    juce::Label versionTag;
+    juce::Slider inputSlider, gateSlider, mixSlider, outputSlider;
+    juce::Slider characterSlider, driveSlider, compSlider, pumpSlider, bassSlider, trebleSlider, locutSlider;
     
     // Attachments for linking sliders-parameters
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> inputAttachment, gateAttachment, mixAttachment, outputAttachment;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lifterRangeAttachment, lifterAttackAttachment, lifterReleaseAttachment, lifterMixAttachment, compThresAttachment, compAttackAttachment, compReleaseAttachment, compMixAttachment;
-    
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> clipperAttachment;
-    
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> characterAttachment, driveAttachment, compAttachment, pumpAttachment, bassAttachment, trebleAttachment, locutAttachment;
+        
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginEditor)
 };

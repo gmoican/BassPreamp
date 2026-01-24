@@ -113,7 +113,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout BassPreampProcessor::createP
                                                                      )
                          );
     
-    // Clipper
+    // Mix
     utilsGroup->addChild(std::make_unique<juce::AudioParameterFloat>(
                                                                      Parameters::mixId,
                                                                      Parameters::mixName,
@@ -145,7 +145,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout BassPreampProcessor::createP
     preampGroup->addChild(std::make_unique<juce::AudioParameterFloat>(
                                                                       Parameters::characterId,
                                                                       Parameters::characterName,
-                                                                      juce::NormalisableRange<float>(Parameters::characterMin, Parameters::characterMax, 0.1f),
+                                                                      juce::NormalisableRange<float>(Parameters::characterMin, Parameters::characterMax, 0.01f),
                                                                       Parameters::characterDefault
                                                                       )
                           );
@@ -154,7 +154,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout BassPreampProcessor::createP
     preampGroup->addChild(std::make_unique<juce::AudioParameterFloat>(
                                                                       Parameters::driveId,
                                                                       Parameters::driveName,
-                                                                      juce::NormalisableRange<float>(Parameters::driveMin, Parameters::driveMax, 0.1f),
+                                                                      juce::NormalisableRange<float>(Parameters::driveMin, Parameters::driveMax, 0.01f),
                                                                       Parameters::driveDefault
                                                                       )
                           );
@@ -163,7 +163,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout BassPreampProcessor::createP
     preampGroup->addChild(std::make_unique<juce::AudioParameterFloat>(
                                                                       Parameters::compId,
                                                                       Parameters::compName,
-                                                                      juce::NormalisableRange<float>(Parameters::compMin, Parameters::compMax, 0.1f),
+                                                                      juce::NormalisableRange<float>(Parameters::compMin, Parameters::compMax, 0.01f),
                                                                       Parameters::compDefault
                                                                       )
                           );
@@ -172,7 +172,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout BassPreampProcessor::createP
     preampGroup->addChild(std::make_unique<juce::AudioParameterFloat>(
                                                                       Parameters::pumpId,
                                                                       Parameters::pumpName,
-                                                                      juce::NormalisableRange<float>(Parameters::pumpMin, Parameters::pumpMax, 1.0f),
+                                                                      juce::NormalisableRange<float>(Parameters::pumpMin, Parameters::pumpMax, 0.01f),
                                                                       Parameters::pumpDefault
                                                                       )
                           );
@@ -181,7 +181,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout BassPreampProcessor::createP
     preampGroup->addChild(std::make_unique<juce::AudioParameterFloat>(
                                                                       Parameters::bassId,
                                                                       Parameters::bassName,
-                                                                      juce::NormalisableRange<float>(Parameters::bassMin, Parameters::bassMax, 0.1f),
+                                                                      juce::NormalisableRange<float>(Parameters::bassMin, Parameters::bassMax, 0.01f),
                                                                       Parameters::bassDefault
                                                                       )
                           
@@ -191,7 +191,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout BassPreampProcessor::createP
     preampGroup->addChild(std::make_unique<juce::AudioParameterFloat>(
                                                                       Parameters::trebleId,
                                                                       Parameters::trebleName,
-                                                                      juce::NormalisableRange<float>(Parameters::trebleMin, Parameters::trebleMax, 0.1f),
+                                                                      juce::NormalisableRange<float>(Parameters::trebleMin, Parameters::trebleMax, 0.01f),
                                                                       Parameters::trebleDefault
                                                                       )
                           );
@@ -200,7 +200,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout BassPreampProcessor::createP
     preampGroup->addChild(std::make_unique<juce::AudioParameterFloat>(
                                                                       Parameters::locutId,
                                                                       Parameters::locutName,
-                                                                      juce::NormalisableRange<float>(Parameters::locutMin, Parameters::locutMax, 0.1f),
+                                                                      juce::NormalisableRange<float>(Parameters::locutMin, Parameters::locutMax, 0.01f),
                                                                       Parameters::locutDefault
                                                                       )
                           );
@@ -334,7 +334,8 @@ void BassPreampProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // 2.5. Preamp - Output EQ
     // TODO: Implement
     
-    // 3. UTILITIES - OUTPUT GAIN
+    // 3. UTILITIES - MIX & OUTPUT GAIN
+    //TODO: Mix
     buffer.applyGain(outGain);
 }
 

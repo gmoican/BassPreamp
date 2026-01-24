@@ -138,7 +138,6 @@ target_compile_definitions(SharedCode
 target_link_libraries(SharedCode
     INTERFACE
     Assets
-    melatonin_inspector
     punk_dsp
     ff_meters
     juce_audio_utils
