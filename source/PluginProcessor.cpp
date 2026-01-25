@@ -228,10 +228,10 @@ void BassPreampProcessor::updateParameters()
     
     // Character - Needs an eq-curve
     const auto characterValue = apvts.getRawParameterValue(Parameters::characterId)->load();
-    auto charLowGain = juce::jmap(characterValue, 1.f, 2.f);
-    auto charMidGain = juce::jmap(characterValue, 1.f, 0.1f);
-    auto charMidHiGain = juce::jmap(characterValue, 1.f, 1.8f);
-    auto charHiGain = juce::jmap(characterValue, 1.f, 2.4f);
+    const auto charLowGain = juce::jmap(characterValue, 1.f, 2.f);
+    const auto charMidGain = juce::jmap(characterValue, 1.f, 0.1f);
+    const auto charMidHiGain = juce::jmap(characterValue, 1.f, 1.8f);
+    const auto charHiGain = juce::jmap(characterValue, 1.f, 2.4f);
     
     double sampleRate = getSampleRate();
     
@@ -249,8 +249,17 @@ void BassPreampProcessor::updateParameters()
     const auto pumpValue = apvts.getRawParameterValue(Parameters::pumpId)->load();
     // Bass - Treble - LoCut
     const auto bassValue = apvts.getRawParameterValue(Parameters::bassId)->load();
+    const auto bassGain = juce::mapToLog10(bassValue, 0.25f, 4.0f);
+        
     const auto trebleValue = apvts.getRawParameterValue(Parameters::trebleId)->load();
+    const auto trebleGain = juce::mapToLog10(trebleValue, 0.2f, 5.0f);
+    
     const auto locutValue = apvts.getRawParameterValue(Parameters::locutId)->load();
+    const auto locutFreq = juce::jmap(locutValue, 20.f, 90.f);
+    
+    *postEq.get<0>().state = *juce::dsp::IIR::Coefficients<float>::makeLowShelf(sampleRate, 150.f, 0.7f, bassGain);
+    *postEq.get<1>().state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, 3500.f, 0.7f, trebleGain);
+    *postEq.get<2>().state = *juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(sampleRate, locutFreq);
     
 }
 
@@ -364,7 +373,7 @@ void BassPreampProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // parallelCompressor.process(buffer);
     
     // 2.5. Preamp - Output EQ
-    // postEq.process( juce::dsp::ProcessContextReplacing<float>(audioBlock) );
+    postEq.process( juce::dsp::ProcessContextReplacing<float>(audioBlock) );
     
     // 3. UTILITIES - MIX & OUTPUT GAIN
     buffer.applyGain(outGain);
