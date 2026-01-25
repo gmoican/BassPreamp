@@ -139,6 +139,7 @@ private:
     float outGain = 1.0f;
     punk_dsp::Gate gate;
     Mix dryWetMixer;
+    punk_dsp::Waveshaper outputClipper;
     
     // --- PREAMP PROCESSORS ---
     punk_dsp::TubeModel saturator;

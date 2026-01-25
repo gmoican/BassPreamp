@@ -242,7 +242,8 @@ void BassPreampProcessor::updateParameters()
     
     // Saturator
     const auto driveValue = apvts.getRawParameterValue(Parameters::driveId)->load();
-    saturator.setDrive( driveValue );
+    saturator.setDrive( juce::jmap(driveValue, 0.5f, 2.0f) );
+    
     // Comp
     const auto compValue = apvts.getRawParameterValue(Parameters::compId)->load();
     // Pump
@@ -275,6 +276,8 @@ void BassPreampProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     gate.updateRelease(30.f);
     gate.updateMix(90.f);
     
+    outputClipper.setOutGain(1.7f);
+    
     dryWetMixer.prepare(spec);
     
     characterEq.prepare(spec);
@@ -296,7 +299,8 @@ void BassPreampProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     // parallelCompressor.prepare(spec);
     // parallelCompressor.updateRatio(8.f);
     
-    // saturator.setOutGain(1.7f);
+    saturator.setOutGain(1.8f);
+    saturator.setHarmonicBalance(0.3f);
     
     // this prepares the meterSource to measure all output blocks and average over 100ms to allow smooth movements
     inputMeter.resize (getTotalNumOutputChannels(), (int) (sampleRate * 0.1 / samplesPerBlock));
@@ -364,7 +368,7 @@ void BassPreampProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     characterEq.process( juce::dsp::ProcessContextReplacing<float>(audioBlock) );
     
     // 2.2. Preamp - Drive
-    // saturator.processBuffer(buffer);
+    saturator.processBuffer(buffer);
     
     // 2.3. Preamp - Comp
     // seriesCompressor.process(buffer);
@@ -376,6 +380,7 @@ void BassPreampProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     postEq.process( juce::dsp::ProcessContextReplacing<float>(audioBlock) );
     
     // 3. UTILITIES - MIX & OUTPUT GAIN
+    outputClipper.applyTanhClipper(buffer);
     buffer.applyGain(outGain);
     dryWetMixer.mixWetSamples( audioBlock );
     
