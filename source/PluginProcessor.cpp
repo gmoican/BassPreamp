@@ -218,8 +218,8 @@ void BassPreampProcessor::updateParameters()
     
     gate.updateThres( apvts.getRawParameterValue(Parameters::gateId)->load() );
     
-    // TODO: What mixer processor should I use ???
-    // mixer = apvts.getRawParameterValue(Parameters::mixId)->load();
+    const auto mixValue = apvts.getRawParameterValue(Parameters::mixId)->load();
+    dryWetMixer.setWetMixProportion( mixValue / 100.f );
     
     outGain = juce::Decibels::decibelsToGain( apvts.getRawParameterValue(Parameters::outId)->load() );
     
@@ -228,6 +228,18 @@ void BassPreampProcessor::updateParameters()
     
     // Character - Needs an eq-curve
     const auto characterValue = apvts.getRawParameterValue(Parameters::characterId)->load();
+    auto charLowGain = juce::jmap(characterValue, 1.f, 2.f);
+    auto charMidGain = juce::jmap(characterValue, 1.f, 0.1f);
+    auto charMidHiGain = juce::jmap(characterValue, 1.f, 1.8f);
+    auto charHiGain = juce::jmap(characterValue, 1.f, 2.4f);
+    
+    double sampleRate = getSampleRate();
+    
+    *characterEq.get<0>().state = *juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, 80, 0.5f, charLowGain);
+    *characterEq.get<1>().state = *juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate, 500.f, 1.f, charMidGain);
+    *characterEq.get<2>().state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, 680.f, 1.f, charMidHiGain);
+    *characterEq.get<3>().state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, 3100.f, 1.f, charHiGain);
+    
     // Saturator
     const auto driveValue = apvts.getRawParameterValue(Parameters::driveId)->load();
     saturator.setDrive( driveValue );
@@ -253,6 +265,15 @@ void BassPreampProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     gate.updateAttack(100.f);
     gate.updateRelease(30.f);
     gate.updateMix(90.f);
+    
+    dryWetMixer.prepare(spec);
+    
+    characterEq.prepare(spec);
+    characterEq.reset();
+    *characterEq.get<4>().state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(sampleRate, 12000.f);
+    
+    postEq.prepare(spec);
+    postEq.reset();
     
     seriesCompressor.prepare(spec);
     // seriesCompressor.updateThres(-3.f);
@@ -319,31 +340,35 @@ void BassPreampProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // Update params
     updateParameters();
     
+    juce::dsp::AudioBlock<float> audioBlock = juce::dsp::AudioBlock<float>(buffer);
+    
     // LEVEL METERS - INPUT
     inputMeter.measureBlock (buffer);
     
     // 1. UTILITIES - INPUT GAIN & GATE
+    dryWetMixer.pushDrySamples(audioBlock);
+
     buffer.applyGain(inGain);
     gate.process(buffer);
     
     // 2.1. Preamp - Character
-    // TODO: Implement
+    characterEq.process( juce::dsp::ProcessContextReplacing<float>(audioBlock) );
     
     // 2.2. Preamp - Drive
-    saturator.processBuffer(buffer);
+    // saturator.processBuffer(buffer);
     
     // 2.3. Preamp - Comp
-    seriesCompressor.process(buffer);
+    // seriesCompressor.process(buffer);
     
     // 2.4. Preamp - Pump
-    parallelCompressor.process(buffer);
+    // parallelCompressor.process(buffer);
     
     // 2.5. Preamp - Output EQ
-    // TODO: Implement
+    // postEq.process( juce::dsp::ProcessContextReplacing<float>(audioBlock) );
     
     // 3. UTILITIES - MIX & OUTPUT GAIN
-    //TODO: Mix
     buffer.applyGain(outGain);
+    dryWetMixer.mixWetSamples( audioBlock );
     
     // LEVEL METERS - OUTPUT
     outputMeter.measureBlock (buffer);

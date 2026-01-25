@@ -130,15 +130,22 @@ public:
 private:
     juce::AudioProcessorValueTreeState::ParameterLayout createParams();
     
+    using FilterBand = juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>;
+    using Mix = juce::dsp::DryWetMixer<float>;
+    
     // --- INTERNAL PARAMETER HANDLING ---
     // Utilities
     float inGain = 1.0f;
     float outGain = 1.0f;
     punk_dsp::Gate gate;
+    Mix dryWetMixer;
     
     // --- PREAMP PROCESSORS ---
     punk_dsp::TubeModel saturator;
     punk_dsp::Compressor seriesCompressor, parallelCompressor;
+    
+    juce::dsp::ProcessorChain<FilterBand, FilterBand, FilterBand, FilterBand, FilterBand> characterEq;
+    juce::dsp::ProcessorChain<FilterBand, FilterBand, FilterBand> postEq;
     
     // --- FOLEYS METERS ---
     foleys::LevelMeterSource inputMeter, outputMeter;
