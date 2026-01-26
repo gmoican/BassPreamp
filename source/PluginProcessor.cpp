@@ -251,6 +251,9 @@ void BassPreampProcessor::updateParameters()
     
     // Pump
     const auto pumpValue = apvts.getRawParameterValue(Parameters::pumpId)->load();
+    parallelCompressor.updateMix( juce::jmap(pumpValue, 0.0f, 0.5f) );
+    parallelCompressor.updateMakeUp( juce::jmap(pumpValue, 0.0f, 12.f) );
+    
     // Bass - Treble - LoCut
     const auto bassValue = apvts.getRawParameterValue(Parameters::bassId)->load();
     const auto bassGain = juce::mapToLog10(bassValue, 0.25f, 4.0f);
@@ -292,15 +295,17 @@ void BassPreampProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     
     seriesCompressor.prepare(spec);
     seriesCompressor.updateKnee(12.0f);
-    seriesCompressor.updateRatio(12.0f);
+    seriesCompressor.updateRatio(6.0f);
     seriesCompressor.updateAttack(10.0f);
     seriesCompressor.updateRelease(30.0f);
     seriesCompressor.updateFeedForward(false);
     
     parallelCompressor.prepare(spec);
-    // parallelCompressor.updateRatio(6.f);
-    // parallelCompressor.prepare(spec);
-    // parallelCompressor.updateRatio(8.f);
+    parallelCompressor.updateRatio(12.f);
+    parallelCompressor.updateThres(-20.f);
+    parallelCompressor.updateKnee(15.f);
+    parallelCompressor.updateAttack(30.f);
+    parallelCompressor.updateRelease(60.f);
     
     saturator.setOutGain(1.7f);
     saturator.setHarmonicBalance(0.8f);
@@ -378,7 +383,7 @@ void BassPreampProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     seriesCompressor.process(buffer);
     
     // 2.4. Preamp - Pump
-    // parallelCompressor.process(buffer);
+    parallelCompressor.process(buffer);
     
     // 2.5. Preamp - Output EQ
     postEq.process( juce::dsp::ProcessContextReplacing<float>(audioBlock) );
