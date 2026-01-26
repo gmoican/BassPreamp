@@ -159,21 +159,21 @@ juce::AudioProcessorValueTreeState::ParameterLayout BassPreampProcessor::createP
                                                                       )
                           );
     
-    // Comp: Adjusts the input-gain and mix of a compressor running in series
+    // Low Comp / Deep: Compressor affecting frequencies below 600 Hz
     preampGroup->addChild(std::make_unique<juce::AudioParameterFloat>(
-                                                                      Parameters::compId,
-                                                                      Parameters::compName,
-                                                                      juce::NormalisableRange<float>(Parameters::compMin, Parameters::compMax, 0.01f),
-                                                                      Parameters::compDefault
+                                                                      Parameters::lowCompId,
+                                                                      Parameters::lowCompName,
+                                                                      juce::NormalisableRange<float>(Parameters::lowCompMin, Parameters::lowCompMax, 0.01f),
+                                                                      Parameters::lowCompDefault
                                                                       )
                           );
     
-    // Pump: Adjusts the input-gain and mix of a compressor running in parallel
+    // Hi Comp / Bite: Compressor affecting frequencies above 600 Hz
     preampGroup->addChild(std::make_unique<juce::AudioParameterFloat>(
-                                                                      Parameters::pumpId,
-                                                                      Parameters::pumpName,
-                                                                      juce::NormalisableRange<float>(Parameters::pumpMin, Parameters::pumpMax, 0.01f),
-                                                                      Parameters::pumpDefault
+                                                                      Parameters::hiCompId,
+                                                                      Parameters::hiCompName,
+                                                                      juce::NormalisableRange<float>(Parameters::hiCompMin, Parameters::hiCompMax, 0.01f),
+                                                                      Parameters::hiCompDefault
                                                                       )
                           );
     
@@ -223,9 +223,7 @@ void BassPreampProcessor::updateParameters()
     
     outGain = juce::Decibels::decibelsToGain( apvts.getRawParameterValue(Parameters::outId)->load() );
     
-    // --- 2. Preamp
-    // TODO: Adjusts all mappings and variables affected
-    
+    // --- 2. Pream
     // Character - Needs an eq-curve
     const auto characterValue = apvts.getRawParameterValue(Parameters::characterId)->load();
     const auto charLowGain = juce::jmap(characterValue, 1.f, 2.f);
@@ -244,15 +242,15 @@ void BassPreampProcessor::updateParameters()
     const auto driveValue = apvts.getRawParameterValue(Parameters::driveId)->load();
     saturator.setDrive( juce::jmap(driveValue, 0.5f, 2.0f) );
     
-    // Comp
-    const auto compValue = apvts.getRawParameterValue(Parameters::compId)->load();
-    seriesCompressor.updateThres( juce::jmap(compValue, -6.f, -20.f) );
-    seriesCompressor.updateMakeUp( juce::jmap(compValue, 0.f, 15.f) );
+    // Low Comp - TODO: ADJUST SETTINGS
+    const auto lowCompValue = apvts.getRawParameterValue(Parameters::lowCompId)->load();
+    lowCompressor.updateThres( juce::jmap(lowCompValue, -6.f, -20.f) );
+    lowCompressor.updateMakeUp( juce::jmap(lowCompValue, 0.f, 15.f) );
     
-    // Pump
-    const auto pumpValue = apvts.getRawParameterValue(Parameters::pumpId)->load();
-    parallelCompressor.updateMix( juce::jmap(pumpValue, 0.0f, 0.5f) );
-    parallelCompressor.updateMakeUp( juce::jmap(pumpValue, 0.0f, 12.f) );
+    // Hi Comp - TODO: ADJUST SETTINGS
+    const auto hiCompValue = apvts.getRawParameterValue(Parameters::hiCompId)->load();
+    highCompressor.updateMix( juce::jmap(hiCompValue, 0.0f, 0.5f) );
+    highCompressor.updateMakeUp( juce::jmap(hiCompValue, 0.0f, 12.f) );
     
     // Bass - Treble - LoCut
     const auto bassValue = apvts.getRawParameterValue(Parameters::bassId)->load();
@@ -293,19 +291,19 @@ void BassPreampProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     postEq.prepare(spec);
     postEq.reset();
     
-    seriesCompressor.prepare(spec);
-    seriesCompressor.updateKnee(12.0f);
-    seriesCompressor.updateRatio(6.0f);
-    seriesCompressor.updateAttack(10.0f);
-    seriesCompressor.updateRelease(30.0f);
-    seriesCompressor.updateFeedForward(false);
+    lowCompressor.prepare(spec);
+    lowCompressor.updateKnee(12.0f);
+    lowCompressor.updateRatio(6.0f);
+    lowCompressor.updateAttack(10.0f);
+    lowCompressor.updateRelease(30.0f);
+    lowCompressor.updateFeedForward(false);
     
-    parallelCompressor.prepare(spec);
-    parallelCompressor.updateRatio(12.f);
-    parallelCompressor.updateThres(-20.f);
-    parallelCompressor.updateKnee(15.f);
-    parallelCompressor.updateAttack(30.f);
-    parallelCompressor.updateRelease(60.f);
+    highCompressor.prepare(spec);
+    highCompressor.updateRatio(12.f);
+    highCompressor.updateThres(-20.f);
+    highCompressor.updateKnee(15.f);
+    highCompressor.updateAttack(30.f);
+    highCompressor.updateRelease(60.f);
     
     saturator.setOutGain(1.7f);
     saturator.setHarmonicBalance(0.8f);
@@ -380,10 +378,10 @@ void BassPreampProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     saturator.processBuffer(buffer);
     
     // 2.3. Preamp - Comp
-    seriesCompressor.process(buffer);
+    lowCompressor.process(buffer);
     
     // 2.4. Preamp - Pump
-    parallelCompressor.process(buffer);
+    highCompressor.process(buffer);
     
     // 2.5. Preamp - Output EQ
     postEq.process( juce::dsp::ProcessContextReplacing<float>(audioBlock) );

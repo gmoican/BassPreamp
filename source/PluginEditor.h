@@ -35,11 +35,11 @@ private:
     
     // Sliders - Rotary knobs
     juce::Slider inputSlider, gateSlider, mixSlider, outputSlider;
-    juce::Slider characterSlider, driveSlider, compSlider, pumpSlider, bassSlider, trebleSlider, locutSlider;
+    juce::Slider characterSlider, driveSlider, lowCompSlider, hiCompSlider, bassSlider, trebleSlider, locutSlider;
     
     // Attachments for linking sliders-parameters
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> inputAttachment, gateAttachment, mixAttachment, outputAttachment;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> characterAttachment, driveAttachment, compAttachment, pumpAttachment, bassAttachment, trebleAttachment, locutAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> characterAttachment, driveAttachment, lowCompAttachment, hiCompAttachment, bassAttachment, trebleAttachment, locutAttachment;
         
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginEditor)
 };

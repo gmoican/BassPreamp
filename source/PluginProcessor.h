@@ -51,18 +51,18 @@ namespace Parameters
     constexpr auto driveMax = 1.0f;
 
     // Comp: Adjusts the input-gain and mix of a compressor running in series
-    constexpr auto compId = "comp";
-    constexpr auto compName = "Comp";
-    constexpr auto compDefault = 0.5f;
-    constexpr auto compMin = 0.0f;
-    constexpr auto compMax = 1.0f;
+    constexpr auto lowCompId = "lowcomp";
+    constexpr auto lowCompName = "lowComp";
+    constexpr auto lowCompDefault = 0.5f;
+    constexpr auto lowCompMin = 0.0f;
+    constexpr auto lowCompMax = 1.0f;
 
     // Pump: Adjusts the input-gain and mix of a compressor running in parallel
-    constexpr auto pumpId = "pump";
-    constexpr auto pumpName = "Pump";
-    constexpr auto pumpDefault = 0.5f;
-    constexpr auto pumpMin = 0.0f;
-    constexpr auto pumpMax = 1.0f;
+    constexpr auto hiCompId = "hicomp";
+    constexpr auto hiCompName = "hiComp";
+    constexpr auto hiCompDefault = 0.5f;
+    constexpr auto hiCompMin = 0.0f;
+    constexpr auto hiCompMax = 1.0f;
 
     // Bass: Low-shelf filter at the end of the chain
     constexpr auto bassId = "bass";
@@ -143,7 +143,7 @@ private:
     
     // --- PREAMP PROCESSORS ---
     punk_dsp::TubeModel saturator;
-    punk_dsp::Compressor seriesCompressor, parallelCompressor;
+    punk_dsp::Compressor lowCompressor, highCompressor;
     
     juce::dsp::ProcessorChain<FilterBand, FilterBand, FilterBand, FilterBand, FilterBand> characterEq;
     juce::dsp::ProcessorChain<FilterBand, FilterBand, FilterBand> postEq;

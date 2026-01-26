@@ -104,23 +104,23 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     
     driveAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::driveId, driveSlider);
 
-    // Comp knob
-    compSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    compSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    compSlider.setRange(Parameters::compMin, Parameters::compMax, 0.1);
-    compSlider.setValue(Parameters::compDefault);
-    addAndMakeVisible(compSlider);
+    // Low Comp / Deep knob
+    lowCompSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    lowCompSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    lowCompSlider.setRange(Parameters::lowCompMin, Parameters::lowCompMax, 0.1);
+    lowCompSlider.setValue(Parameters::lowCompDefault);
+    addAndMakeVisible(lowCompSlider);
     
-    compAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::compId, compSlider);
+    lowCompAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::lowCompId, lowCompSlider);
     
-    // Pump knob
-    pumpSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    pumpSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
-    pumpSlider.setRange(Parameters::pumpMin, Parameters::pumpMax, 0.01);
-    pumpSlider.setValue(Parameters::pumpDefault);
-    addAndMakeVisible(pumpSlider);
+    // Hi Comp / Bite knob
+    hiCompSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    hiCompSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+    hiCompSlider.setRange(Parameters::hiCompMin, Parameters::hiCompMax, 0.01);
+    hiCompSlider.setValue(Parameters::hiCompDefault);
+    addAndMakeVisible(hiCompSlider);
     
-    pumpAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::pumpId, pumpSlider);
+    hiCompAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::hiCompId, hiCompSlider);
 
     // Bass knob
     bassSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
@@ -211,8 +211,8 @@ void PluginEditor::resized()
     std::vector<KnobLayout> knobs = {
         { &characterSlider, 129 + 38, 275 + 38, 82 },
         { &driveSlider, 223 + 38, 401 + 38, 82 },
-        { &compSlider, 316 + 38, 275 + 38, 82 },
-        { &pumpSlider, 410 + 38, 401 + 38, 82 },
+        { &lowCompSlider, 316 + 38, 275 + 38, 82 },
+        { &hiCompSlider, 410 + 38, 401 + 38, 82 },
         { &bassSlider, 504 + 38, 275 + 38, 82 },
         { &trebleSlider, 597 + 38, 401 + 38, 82 },
         { &locutSlider, 665 + 20, 285 + 20, 46 }
