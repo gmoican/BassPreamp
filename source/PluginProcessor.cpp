@@ -246,6 +246,9 @@ void BassPreampProcessor::updateParameters()
     
     // Comp
     const auto compValue = apvts.getRawParameterValue(Parameters::compId)->load();
+    seriesCompressor.updateThres( juce::jmap(compValue, -6.f, -20.f) );
+    seriesCompressor.updateMakeUp( juce::jmap(compValue, 0.f, 15.f) );
+    
     // Pump
     const auto pumpValue = apvts.getRawParameterValue(Parameters::pumpId)->load();
     // Bass - Treble - LoCut
@@ -288,19 +291,20 @@ void BassPreampProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     postEq.reset();
     
     seriesCompressor.prepare(spec);
-    // seriesCompressor.updateThres(-3.f);
-    // seriesCompressor.updateKnee(1.0f);
-    // seriesCompressor.updateRatio(20.0f);
-    // seriesCompressor.updateAttack(30.0f);
-    // seriesCompressor.updateRelease(100.0f);
+    seriesCompressor.updateKnee(12.0f);
+    seriesCompressor.updateRatio(12.0f);
+    seriesCompressor.updateAttack(10.0f);
+    seriesCompressor.updateRelease(30.0f);
+    seriesCompressor.updateFeedForward(false);
     
     parallelCompressor.prepare(spec);
     // parallelCompressor.updateRatio(6.f);
     // parallelCompressor.prepare(spec);
     // parallelCompressor.updateRatio(8.f);
     
-    saturator.setOutGain(1.8f);
-    saturator.setHarmonicBalance(0.3f);
+    saturator.setOutGain(1.7f);
+    saturator.setHarmonicBalance(0.8f);
+    saturator.setSagTime(50.0f);
     
     // this prepares the meterSource to measure all output blocks and average over 100ms to allow smooth movements
     inputMeter.resize (getTotalNumOutputChannels(), (int) (sampleRate * 0.1 / samplesPerBlock));
@@ -371,7 +375,7 @@ void BassPreampProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     saturator.processBuffer(buffer);
     
     // 2.3. Preamp - Comp
-    // seriesCompressor.process(buffer);
+    seriesCompressor.process(buffer);
     
     // 2.4. Preamp - Pump
     // parallelCompressor.process(buffer);
