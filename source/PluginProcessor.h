@@ -50,14 +50,14 @@ namespace Parameters
     constexpr auto driveMin = 0.0f;
     constexpr auto driveMax = 1.0f;
 
-    // Comp: Adjusts the input-gain and mix of a compressor running in series
+    // Deep: Adjusts the input gain + ratio of a compressor running below 500Hz
     constexpr auto lowCompId = "lowcomp";
     constexpr auto lowCompName = "lowComp";
     constexpr auto lowCompDefault = 0.5f;
     constexpr auto lowCompMin = 0.0f;
     constexpr auto lowCompMax = 1.0f;
 
-    // Pump: Adjusts the input-gain and mix of a compressor running in parallel
+    // Bite: Adjusts the input gain + ratio of a compressor running above 500Hz
     constexpr auto hiCompId = "hicomp";
     constexpr auto hiCompName = "hiComp";
     constexpr auto hiCompDefault = 0.5f;
@@ -130,7 +130,10 @@ public:
 private:
     juce::AudioProcessorValueTreeState::ParameterLayout createParams();
     
-    using FilterBand = juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>;
+    juce::AudioBuffer<float> lowCompBuffer, highCompBuffer;
+    
+    using IIRFilter = juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>;
+    using LRFilter = juce::dsp::LinkwitzRileyFilter<float>;
     using Mix = juce::dsp::DryWetMixer<float>;
     
     // --- INTERNAL PARAMETER HANDLING ---
@@ -145,8 +148,13 @@ private:
     punk_dsp::TubeModel saturator;
     punk_dsp::Compressor lowCompressor, highCompressor;
     
-    juce::dsp::ProcessorChain<FilterBand, FilterBand, FilterBand, FilterBand, FilterBand> characterEq;
-    juce::dsp::ProcessorChain<FilterBand, FilterBand, FilterBand> postEq;
+    juce::dsp::ProcessorChain<IIRFilter, IIRFilter, IIRFilter, IIRFilter, IIRFilter> characterEq;
+    juce::dsp::ProcessorChain<IIRFilter, IIRFilter, IIRFilter> postEq;
+    
+    // Multiband compressors
+    float lowBandGain = 1.0f;
+    float highBandGain = 1.0f;
+    LRFilter lowPassFilter, highPassFilter;
     
     // --- FOLEYS METERS ---
     foleys::LevelMeterSource inputMeter, outputMeter;

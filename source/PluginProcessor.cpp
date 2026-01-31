@@ -159,20 +159,20 @@ juce::AudioProcessorValueTreeState::ParameterLayout BassPreampProcessor::createP
                                                                       )
                           );
     
-    // Low Comp / Deep: Compressor affecting frequencies below 600 Hz
+    // Low Comp / Deep: Compressor affecting frequencies below 500 Hz
     preampGroup->addChild(std::make_unique<juce::AudioParameterFloat>(
                                                                       Parameters::lowCompId,
                                                                       Parameters::lowCompName,
-                                                                      juce::NormalisableRange<float>(Parameters::lowCompMin, Parameters::lowCompMax, 0.01f),
+                                                                      juce::NormalisableRange<float>(Parameters::lowCompMin, Parameters::lowCompMax, 0.001f),
                                                                       Parameters::lowCompDefault
                                                                       )
                           );
     
-    // Hi Comp / Bite: Compressor affecting frequencies above 600 Hz
+    // Hi Comp / Bite: Compressor affecting frequencies above 500 Hz
     preampGroup->addChild(std::make_unique<juce::AudioParameterFloat>(
                                                                       Parameters::hiCompId,
                                                                       Parameters::hiCompName,
-                                                                      juce::NormalisableRange<float>(Parameters::hiCompMin, Parameters::hiCompMax, 0.01f),
+                                                                      juce::NormalisableRange<float>(Parameters::hiCompMin, Parameters::hiCompMax, 0.001f),
                                                                       Parameters::hiCompDefault
                                                                       )
                           );
@@ -244,13 +244,15 @@ void BassPreampProcessor::updateParameters()
     
     // Low Comp - TODO: ADJUST SETTINGS
     const auto lowCompValue = apvts.getRawParameterValue(Parameters::lowCompId)->load();
-    lowCompressor.updateThres( juce::jmap(lowCompValue, -6.f, -20.f) );
-    lowCompressor.updateMakeUp( juce::jmap(lowCompValue, 0.f, 15.f) );
+    lowBandGain = juce::jmap(lowCompValue, 1.0f, 5.f);
+    lowCompressor.updateRatio( juce::jmap(lowCompValue, 8.f, 20.f) );
+    lowCompressor.updateMakeUp( juce::jmap(lowCompValue, 1.f, -10.f) );
     
     // Hi Comp - TODO: ADJUST SETTINGS
     const auto hiCompValue = apvts.getRawParameterValue(Parameters::hiCompId)->load();
-    highCompressor.updateMix( juce::jmap(hiCompValue, 0.0f, 0.5f) );
-    highCompressor.updateMakeUp( juce::jmap(hiCompValue, 0.0f, 12.f) );
+    highBandGain = juce::jmap(hiCompValue, 1.0f, 5.0f);
+    highCompressor.updateRatio( juce::jmap(hiCompValue, 8.f, 20.f) );
+    highCompressor.updateMakeUp( juce::jmap(hiCompValue, 1.0f, -10.f) );
     
     // Bass - Treble - LoCut
     const auto bassValue = apvts.getRawParameterValue(Parameters::bassId)->load();
@@ -275,6 +277,7 @@ void BassPreampProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     spec.numChannels = getTotalNumOutputChannels();
     spec.sampleRate = sampleRate;
     
+    // Utility classes
     gate.prepare(spec);
     gate.updateAttack(100.f);
     gate.updateRelease(30.f);
@@ -284,30 +287,47 @@ void BassPreampProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     
     dryWetMixer.prepare(spec);
     
+    // Character EQ
     characterEq.prepare(spec);
     characterEq.reset();
     *characterEq.get<4>().state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(sampleRate, 12000.f);
     
-    postEq.prepare(spec);
-    postEq.reset();
-    
-    lowCompressor.prepare(spec);
-    lowCompressor.updateKnee(12.0f);
-    lowCompressor.updateRatio(6.0f);
-    lowCompressor.updateAttack(10.0f);
-    lowCompressor.updateRelease(30.0f);
-    lowCompressor.updateFeedForward(false);
-    
-    highCompressor.prepare(spec);
-    highCompressor.updateRatio(12.f);
-    highCompressor.updateThres(-20.f);
-    highCompressor.updateKnee(15.f);
-    highCompressor.updateAttack(30.f);
-    highCompressor.updateRelease(60.f);
-    
+    // Drive
     saturator.setOutGain(1.7f);
     saturator.setHarmonicBalance(0.8f);
     saturator.setSagTime(50.0f);
+    
+    // Bass + Treble + LoCut
+    postEq.prepare(spec);
+    postEq.reset();
+    
+    // Deep & Bite Compressors + Buffers and filters
+    lowCompressor.prepare(spec);
+    lowCompressor.updateThres(-38.0f);
+    lowCompressor.updateKnee(1.0f);
+    lowCompressor.updateAttack(10.0f);
+    lowCompressor.updateRelease(80.0f);
+    lowCompressor.updateFeedForward(false);
+    
+    highCompressor.prepare(spec);
+    highCompressor.updateThres(-38.f);
+    highCompressor.updateKnee(1.f);
+    highCompressor.updateAttack(10.f);
+    highCompressor.updateRelease(80.f);
+    highCompressor.updateFeedForward(false);
+    
+    // Prepare LR filters
+    lowPassFilter.prepare(spec);
+    lowPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+    lowPassFilter.setCutoffFrequency(500.f);
+    
+    highPassFilter.prepare(spec);
+    highPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
+    highPassFilter.setCutoffFrequency(500.f);
+    
+    // Allocate band buffers
+    lowCompBuffer.setSize(spec.numChannels, samplesPerBlock);
+    highCompBuffer.setSize(spec.numChannels, samplesPerBlock);
     
     // this prepares the meterSource to measure all output blocks and average over 100ms to allow smooth movements
     inputMeter.resize (getTotalNumOutputChannels(), (int) (sampleRate * 0.1 / samplesPerBlock));
@@ -352,7 +372,9 @@ void BassPreampProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-    
+    const int numSamples = buffer.getNumSamples();
+    const int numChannels = buffer.getNumChannels();
+
     // Clear any unused output channel
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
@@ -377,17 +399,43 @@ void BassPreampProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // 2.2. Preamp - Drive
     saturator.processBuffer(buffer);
     
-    // 2.3. Preamp - Comp
-    lowCompressor.process(buffer);
+    // 2.3.1. Copy input to band buffers and create audio blocks for DSP processing
+    for (int ch = 0; ch < numChannels; ++ch)
+    {
+        lowCompBuffer.copyFrom(ch, 0, buffer, ch, 0, numSamples);
+        highCompBuffer.copyFrom(ch, 0, buffer, ch, 0, numSamples);
+    }
     
-    // 2.4. Preamp - Pump
-    highCompressor.process(buffer);
+    juce::dsp::AudioBlock<float> lowBlock(lowCompBuffer);
+    juce::dsp::AudioBlock<float> highBlock(highCompBuffer);
+    
+    juce::dsp::ProcessContextReplacing<float> lowContext(lowBlock);
+    juce::dsp::ProcessContextReplacing<float> highContext(highBlock);
+    
+    // 2.3.2. Filtering the buffers
+    lowPassFilter.process(lowContext);
+    highPassFilter.process(highContext);
+    
+    // 2.3.3. Apply compressors to each band
+    lowCompBuffer.applyGain(lowBandGain);
+    lowCompressor.process(lowCompBuffer);
+    
+    highCompBuffer.applyGain(highBandGain);
+    highCompressor.process(highCompBuffer);
+    
+    //2.3.4. Sum buffers together
+    buffer.clear();
+    for (int ch = 0; ch < numChannels; ++ch)
+    {
+        buffer.addFrom(ch, 0, lowCompBuffer, ch, 0, numSamples);
+        buffer.addFrom(ch, 0, highCompBuffer, ch, 0, numSamples);
+    }
     
     // 2.5. Preamp - Output EQ
     postEq.process( juce::dsp::ProcessContextReplacing<float>(audioBlock) );
     
     // 3. UTILITIES - MIX & OUTPUT GAIN
-    outputClipper.applyTanhClipper(buffer);
+    // outputClipper.applyTanhClipper(buffer);
     buffer.applyGain(outGain);
     dryWetMixer.mixWetSamples( audioBlock );
     
