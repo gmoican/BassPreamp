@@ -51,6 +51,11 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     inputSlider.setRange(Parameters::inMin, Parameters::inMax, 0.1);
     inputSlider.setValue(Parameters::inDefault);
     inputSlider.setName("In");
+    inputSlider.setColour(juce::Slider::thumbColourId,          juce::Colours::whitesmoke);
+    inputSlider.setColour(juce::Slider::trackColourId,          juce::Colours::darkgrey);
+    inputSlider.setColour(juce::Slider::rotarySliderFillColourId, juce::Colours::whitesmoke);
+    inputSlider.setColour(juce::Slider::rotarySliderOutlineColourId, juce::Colours::darkgrey);
+    inputSlider.setColour(juce::Slider::textBoxTextColourId,    juce::Colours::whitesmoke);
     addAndMakeVisible(inputSlider);
     
     inputAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::inId, inputSlider);
@@ -61,6 +66,11 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     gateSlider.setRange(Parameters::gateMin, Parameters::gateMax, 0.1);
     gateSlider.setValue(Parameters::gateDefault);
     gateSlider.setName("Gate");
+    gateSlider.setColour(juce::Slider::thumbColourId,          juce::Colours::whitesmoke);
+    gateSlider.setColour(juce::Slider::trackColourId,          juce::Colours::darkgrey);
+    gateSlider.setColour(juce::Slider::rotarySliderFillColourId, juce::Colours::whitesmoke);
+    gateSlider.setColour(juce::Slider::rotarySliderOutlineColourId, juce::Colours::darkgrey);
+    gateSlider.setColour(juce::Slider::textBoxTextColourId,    juce::Colours::whitesmoke);
     addAndMakeVisible(gateSlider);
     
     gateAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::gateId, gateSlider);
@@ -71,6 +81,11 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     mixSlider.setRange(Parameters::mixMin, Parameters::mixMax, 1.0);
     mixSlider.setValue(Parameters::mixDefault);
     mixSlider.setName("Mix");
+    mixSlider.setColour(juce::Slider::thumbColourId,          juce::Colours::whitesmoke);
+    mixSlider.setColour(juce::Slider::trackColourId,          juce::Colours::darkgrey);
+    mixSlider.setColour(juce::Slider::rotarySliderFillColourId, juce::Colours::whitesmoke);
+    mixSlider.setColour(juce::Slider::rotarySliderOutlineColourId, juce::Colours::darkgrey);
+    mixSlider.setColour(juce::Slider::textBoxTextColourId,    juce::Colours::whitesmoke);
     addAndMakeVisible(mixSlider);
     
     mixAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::mixId, mixSlider);
@@ -81,6 +96,11 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     outputSlider.setRange(Parameters::outMin, Parameters::outMax, 0.1);
     outputSlider.setValue(Parameters::outDefault);
     outputSlider.setName("Out");
+    outputSlider.setColour(juce::Slider::thumbColourId,          juce::Colours::whitesmoke);
+    outputSlider.setColour(juce::Slider::trackColourId,          juce::Colours::darkgrey);
+    outputSlider.setColour(juce::Slider::rotarySliderFillColourId, juce::Colours::whitesmoke);
+    outputSlider.setColour(juce::Slider::rotarySliderOutlineColourId, juce::Colours::darkgrey);
+    outputSlider.setColour(juce::Slider::textBoxTextColourId,    juce::Colours::whitesmoke);
     addAndMakeVisible(outputSlider);
     
     outputAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::outId, outputSlider);
