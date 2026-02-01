@@ -9,7 +9,6 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     
     // Images
     backgroundImage = juce::ImageCache::getFromMemory(BinaryData::BassPreampBackground_png, BinaryData::BassPreampBackground_pngSize);
-    // knobImage = juce::ImageCache::getFromMemory(BinaryData::knob_png, BinaryData::knob_pngSize);
     
     // --- LAYOUT ---
     header.setEnabled(false);
@@ -157,8 +156,7 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     
     locutAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::locutId, locutSlider);
     
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
+    // Sizing
     setResizable(true, true);
     getConstrainer()->setFixedAspectRatio(1.51);
     setResizeLimits(800, 530, 1600, 1060);
