@@ -2,6 +2,7 @@
 
 #include "PluginProcessor.h"
 #include "BinaryData.h"
+#include "gui/ImageLnF.h"
 
 //==============================================================================
 class PluginEditor : public juce::AudioProcessorEditor
@@ -21,6 +22,7 @@ private:
     
     // Custom Look and Feel
     punk_dsp::ExamplesLnF myCustomLnF;
+    ImageLnF imageLnF;
     
     // Foleys' Level meters
     foleys::LevelMeterLookAndFeel lnf;

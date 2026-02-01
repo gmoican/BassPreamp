@@ -7,8 +7,9 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     juce::ignoreUnused (processorRef);
     juce::LookAndFeel::setDefaultLookAndFeel(&myCustomLnF);
     
-    // Background
+    // Images
     backgroundImage = juce::ImageCache::getFromMemory(BinaryData::BassPreampBackground_png, BinaryData::BassPreampBackground_pngSize);
+    // knobImage = juce::ImageCache::getFromMemory(BinaryData::knob_png, BinaryData::knob_pngSize);
     
     // --- LAYOUT ---
     header.setEnabled(false);
@@ -87,6 +88,7 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
 
     // --- PREAMP PARAMETERS ---
     // Character knob
+    characterSlider.setLookAndFeel(&imageLnF);
     characterSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     characterSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     characterSlider.setRange(Parameters::characterMin, Parameters::characterMax, 0.1);
@@ -96,6 +98,7 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     characterAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::characterId, characterSlider);
 
     // Drive knob
+    driveSlider.setLookAndFeel(&imageLnF);
     driveSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     driveSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     driveSlider.setRange(Parameters::driveMin, Parameters::driveMax, 0.1);
@@ -105,6 +108,7 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     driveAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::driveId, driveSlider);
 
     // Low Comp / Deep knob
+    lowCompSlider.setLookAndFeel(&imageLnF);
     lowCompSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     lowCompSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     lowCompSlider.setRange(Parameters::lowCompMin, Parameters::lowCompMax, 0.1);
@@ -114,6 +118,7 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     lowCompAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::lowCompId, lowCompSlider);
     
     // Hi Comp / Bite knob
+    hiCompSlider.setLookAndFeel(&imageLnF);
     hiCompSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     hiCompSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     hiCompSlider.setRange(Parameters::hiCompMin, Parameters::hiCompMax, 0.01);
@@ -123,6 +128,7 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     hiCompAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::hiCompId, hiCompSlider);
 
     // Bass knob
+    bassSlider.setLookAndFeel(&imageLnF);
     bassSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     bassSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     bassSlider.setRange(Parameters::bassMin, Parameters::bassMax, 0.1);
@@ -132,6 +138,7 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     bassAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::bassId, bassSlider);
     
     // Treble knob
+    trebleSlider.setLookAndFeel(&imageLnF);
     trebleSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     trebleSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     trebleSlider.setRange(Parameters::trebleMin, Parameters::trebleMax, 0.1);
@@ -141,6 +148,7 @@ PluginEditor::PluginEditor (BassPreampProcessor& p)
     trebleAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processorRef.apvts, Parameters::trebleId, trebleSlider);
     
     // Lo-cut knob
+    locutSlider.setLookAndFeel(&imageLnF);
     locutSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     locutSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
     locutSlider.setRange(Parameters::locutMin, Parameters::locutMax, 0.1);
@@ -209,13 +217,13 @@ void PluginEditor::resized()
     };
     
     std::vector<KnobLayout> knobs = {
-        { &characterSlider, 129 + 38, 275 + 38, 82 },
-        { &driveSlider, 223 + 38, 401 + 38, 82 },
-        { &lowCompSlider, 316 + 38, 275 + 38, 82 },
-        { &hiCompSlider, 410 + 38, 401 + 38, 82 },
-        { &bassSlider, 504 + 38, 275 + 38, 82 },
-        { &trebleSlider, 597 + 38, 401 + 38, 82 },
-        { &locutSlider, 665 + 20, 285 + 20, 46 }
+        { &characterSlider, 129 + 38, 275 + 38, 84 },
+        { &driveSlider, 223 + 38, 401 + 36, 84 },
+        { &lowCompSlider, 316 + 38, 275 + 38, 84 },
+        { &hiCompSlider, 410 + 38, 401 + 36, 84 },
+        { &bassSlider, 504 + 38, 275 + 38, 84 },
+        { &trebleSlider, 597 + 38, 401 + 36, 84 },
+        { &locutSlider, 665 + 19, 285 + 19, 49 }
     };
     
     // Apply scaling to each knob
