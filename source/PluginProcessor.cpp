@@ -238,17 +238,17 @@ void BassPreampProcessor::updateParameters()
     *characterEq.get<2>().state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, 680.f, 1.f, charMidHiGain);
     *characterEq.get<3>().state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, 3100.f, 1.f, charHiGain);
     
-    // Saturator
+    // Saturator - TODO: Fine tuning
     const auto driveValue = apvts.getRawParameterValue(Parameters::driveId)->load();
     saturator.setDrive( juce::jmap(driveValue, 0.5f, 2.0f) );
     
-    // Low Comp - TODO: ADJUST SETTINGS
+    // Low Comp
     const auto lowCompValue = apvts.getRawParameterValue(Parameters::lowCompId)->load();
     lowBandGain = juce::jmap(lowCompValue, 1.0f, 5.f);
     lowCompressor.updateRatio( juce::jmap(lowCompValue, 8.f, 20.f) );
     lowCompressor.updateMakeUp( juce::jmap(lowCompValue, 1.f, -10.f) );
     
-    // Hi Comp - TODO: ADJUST SETTINGS
+    // Hi Comp
     const auto hiCompValue = apvts.getRawParameterValue(Parameters::hiCompId)->load();
     highBandGain = juce::jmap(hiCompValue, 1.0f, 5.0f);
     highCompressor.updateRatio( juce::jmap(hiCompValue, 8.f, 20.f) );
