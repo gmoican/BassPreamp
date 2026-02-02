@@ -239,8 +239,14 @@ void BassPreampProcessor::updateParameters()
     *characterEq.get<3>().state = *juce::dsp::IIR::Coefficients<float>::makeHighShelf(sampleRate, 3100.f, 1.f, charHiGain);
     
     // Saturator - TODO: Fine tuning
+    juce::NormalisableRange<float> lowDriveRange(0.5f, 4.0f);
+    lowDriveRange.setSkewForCentre(1.2f);
+    juce::NormalisableRange<float> highDriveRange(0.5f, 20.0f);
+    highDriveRange.setSkewForCentre(1.6f);
+    
     const auto driveValue = apvts.getRawParameterValue(Parameters::driveId)->load();
-    saturator.setDrive( juce::jmap(driveValue, 0.5f, 2.0f) );
+    lowSaturator.setDrive( lowDriveRange.convertFrom0to1(driveValue) );
+    highSaturator.setDrive( highDriveRange.convertFrom0to1(driveValue) );
     
     // Low Comp
     const auto lowCompValue = apvts.getRawParameterValue(Parameters::lowCompId)->load();
@@ -293,9 +299,12 @@ void BassPreampProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     *characterEq.get<4>().state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(sampleRate, 12000.f);
     
     // Drive
-    saturator.setOutGain(1.7f);
-    saturator.setHarmonicBalance(0.8f);
-    saturator.setSagTime(50.0f);
+    lowSaturator.setOutGain(1.7f);
+    lowSaturator.setHarmonicBalance(1.0f);
+    lowSaturator.setSagTime(100.0f);
+    highSaturator.setOutGain(1.7f);
+    highSaturator.setHarmonicBalance(0.8f);
+    highSaturator.setSagTime(50.0f);
     
     // Bass + Treble + LoCut
     postEq.prepare(spec);
@@ -396,10 +405,7 @@ void BassPreampProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // 2.1. Preamp - Character
     characterEq.process( juce::dsp::ProcessContextReplacing<float>(audioBlock) );
     
-    // 2.2. Preamp - Drive
-    saturator.processBuffer(buffer);
-    
-    // 2.3.1. Copy input to band buffers and create audio blocks for DSP processing
+    // 2.2.1. Copy input to band buffers and create audio blocks for DSP processing
     for (int ch = 0; ch < numChannels; ++ch)
     {
         lowCompBuffer.copyFrom(ch, 0, buffer, ch, 0, numSamples);
@@ -412,18 +418,20 @@ void BassPreampProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     juce::dsp::ProcessContextReplacing<float> lowContext(lowBlock);
     juce::dsp::ProcessContextReplacing<float> highContext(highBlock);
     
-    // 2.3.2. Filtering the buffers
+    // 2.2.2. Filtering the buffers
     lowPassFilter.process(lowContext);
     highPassFilter.process(highContext);
     
-    // 2.3.3. Apply compressors to each band
+    // 2.3. Apply saturation and compression to each band
+    lowSaturator.processBuffer(lowCompBuffer);
     lowCompBuffer.applyGain(lowBandGain);
     lowCompressor.process(lowCompBuffer);
     
+    highSaturator.processBuffer(highCompBuffer);
     highCompBuffer.applyGain(highBandGain);
     highCompressor.process(highCompBuffer);
     
-    //2.3.4. Sum buffers together
+    //2.4. Sum buffers together
     buffer.clear();
     for (int ch = 0; ch < numChannels; ++ch)
     {

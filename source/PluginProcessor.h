@@ -145,7 +145,7 @@ private:
     punk_dsp::Waveshaper outputClipper;
     
     // --- PREAMP PROCESSORS ---
-    punk_dsp::TubeModel saturator;
+    punk_dsp::TubeModel lowSaturator, highSaturator;
     punk_dsp::Compressor lowCompressor, highCompressor;
     
     juce::dsp::ProcessorChain<IIRFilter, IIRFilter, IIRFilter, IIRFilter, IIRFilter> characterEq;
