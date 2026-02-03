@@ -443,7 +443,7 @@ void BassPreampProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     postEq.process( juce::dsp::ProcessContextReplacing<float>(audioBlock) );
     
     // 3. UTILITIES - MIX & OUTPUT GAIN
-    // outputClipper.applyTanhClipper(buffer);
+    outputClipper.applyTanhClipper(buffer);
     buffer.applyGain(outGain);
     dryWetMixer.mixWetSamples( audioBlock );
     
